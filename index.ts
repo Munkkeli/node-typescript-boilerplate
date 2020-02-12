@@ -1,0 +1,72 @@
+import * as fs from 'fs';
+import * as http from 'http';
+import * as https from 'https';
+import * as express from 'express';
+import * as helmet from 'helmet';
+import * as bodyParser from 'body-parser';
+import * as cors from 'cors';
+import * as morgan from 'morgan';
+import { config } from 'dotenv';
+
+config();
+
+import { Request, authenticate, protect } from './src/middleware';
+
+const app = express();
+
+/**
+ * For development purposes
+ * Create your own cors logic or remove this line when going to production
+ */
+app.use(cors());
+
+app.use(helmet());
+app.use(bodyParser.json());
+
+/**
+ * Request logger, can be configured to your needs
+ */
+app.use(morgan('tiny'));
+
+/**
+ * Boilerplate dummy authentication logic
+ * Can be properly implemented in /src/middleware.ts
+ */
+app.use(authenticate);
+
+/**
+ * Simple ping route, can be used to check server status
+ */
+app.get(
+  '/ping',
+  Request(async (trx, req, res) => {
+    return { pong: true, time: new Date().toISOString() };
+  })
+);
+
+let server;
+
+/**
+ * SSL support
+ * In production you should run this server behind Apache or NGINX and let them handle SSL
+ */
+if (process.env.SSL == 'false') {
+  server = http.createServer(app);
+} else {
+  server = https.createServer(
+    {
+      key: fs.readFileSync(process.env.SSL_PRIVATE_KEY, 'utf8'),
+      cert: fs.readFileSync(process.env.SSL_CERTIFICATE, 'utf8'),
+      ca: fs.readFileSync(process.env.SSL_CA_BUNDLE, 'utf8')
+    },
+    app
+  );
+}
+
+server.listen(process.env.PORT, () => {
+  console.log(
+    `Listening on port ${process.env.PORT} for ${
+      process.env.SSL == 'false' ? 'HTTP' : 'HTTPS'
+    } traffic...`
+  );
+});

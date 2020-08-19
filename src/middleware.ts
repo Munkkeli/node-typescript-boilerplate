@@ -1,10 +1,28 @@
 import { PoolClient } from 'pg';
-
+import { Request as ExpressRequest, Response, NextFunction } from 'express';
 import * as DB from './db';
 
+/** TODO: Add any types and fields required in the express request object */
+export interface IRequest extends ExpressRequest {
+  session?: string;
+  user?: any;
+  body: any;
+}
+
+export type IExpressMiddleware = (
+  req: IRequest,
+  res: Response,
+  next: NextFunction
+) => void;
+
 export const Request = (
-  action: (trx: PoolClient, req, res, next) => Promise<any>
-) => async (req, res, next) => {
+  action: (
+    trx: PoolClient,
+    req: IRequest,
+    res: Response,
+    next: NextFunction
+  ) => Promise<any>
+): IExpressMiddleware => async (req, res, next) => {
   const trx = await DB.connect();
 
   let response: any = null;
@@ -36,7 +54,7 @@ export const Request = (
   }
 };
 
-export const authenticate = async (req, res, next) => {
+export const authenticate: IExpressMiddleware = async (req, res, next) => {
   const authorization = req.get('Authorization');
   if (!authorization) return next();
   if (!authorization.includes('Bearer ')) return next();
@@ -53,7 +71,7 @@ export const authenticate = async (req, res, next) => {
   return trxNext();
 };
 
-export const protect = (req, res, next) => {
+export const protect: IExpressMiddleware = (req, res, next) => {
   if (req.user) return next();
   return res.sendStatus(403);
 };

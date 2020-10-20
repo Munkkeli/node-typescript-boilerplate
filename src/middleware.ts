@@ -15,6 +15,9 @@ export type IExpressMiddleware = (
   next: NextFunction
 ) => void;
 
+/**
+ * Wrapper around express requests that handles DB transactions, errors, and responses
+ */
 export const Request = (
   action: (
     trx: PoolClient,
@@ -51,6 +54,28 @@ export const Request = (
     if (response) return res.send(response);
 
     return res.sendStatus(200);
+  }
+};
+
+/**
+ * Generic wrapper around an asynchronous action that handles DB transactions
+ */
+export const Action = <T>(
+  action: (trx: PoolClient, data: T) => Promise<any>
+) => async (data: T) => {
+  const trx = await DB.connect();
+
+  try {
+    await trx.query('BEGIN');
+
+    await action(trx, data);
+
+    await trx.query('COMMIT');
+  } catch (error) {
+    await trx.query('ROLLBACK');
+    console.error(error);
+  } finally {
+    trx.release();
   }
 };
 

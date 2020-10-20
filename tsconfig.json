@@ -1,5 +1,13 @@
 {
   "compilerOptions": {
-    "lib": ["es2019"]
-  }
+    "lib": ["es2019"],
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "plugins": [
+      { "transform": "ts-transformer-keys/transformer" }
+    ]
+  },
+  "exclude": [
+    "node_modules"
+  ]
 }

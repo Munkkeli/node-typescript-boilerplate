@@ -1,16 +1,17 @@
 import * as fs from 'fs';
 import * as http from 'http';
 import * as https from 'https';
-import * as express from 'express';
-import * as helmet from 'helmet';
+import express from 'express';
+import helmet from 'helmet';
 import * as bodyParser from 'body-parser';
-import * as cors from 'cors';
-import * as morgan from 'morgan';
+import cors from 'cors';
+import morgan from 'morgan';
 import { config } from 'dotenv';
 
 config();
 
 import { Request, authenticate, protect } from './src/middleware';
+import { genericRouter } from './src/generic/genericRouter';
 
 const app = express();
 
@@ -35,6 +36,11 @@ app.use(morgan('tiny'));
 app.use(authenticate);
 
 /**
+ * Custom routers
+ */
+app.use(genericRouter);
+
+/**
  * Simple ping route, can be used to check server status
  */
 app.get(
@@ -57,7 +63,7 @@ if (process.env.SSL == 'false') {
     {
       key: fs.readFileSync(process.env.SSL_PRIVATE_KEY, 'utf8'),
       cert: fs.readFileSync(process.env.SSL_CERTIFICATE, 'utf8'),
-      ca: fs.readFileSync(process.env.SSL_CA_BUNDLE, 'utf8')
+      ca: fs.readFileSync(process.env.SSL_CA_BUNDLE, 'utf8'),
     },
     app
   );

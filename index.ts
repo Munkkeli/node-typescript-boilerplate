@@ -10,8 +10,12 @@ import { config } from 'dotenv';
 
 config();
 
-import { Request, authenticate, protect } from './src/middleware';
-import { genericRouter } from './src/generic/genericRouter';
+/**
+ * Local imports should come after dotenv config() has been called
+ * We can use nice ./src relative paths for local imports thanks to the { "baseUrl": "./src" } in .tsconfig.json
+ */
+import { Request, authenticate, protect } from 'middleware';
+import { genericRouter } from 'generic/genericRouter';
 
 const app = express();
 

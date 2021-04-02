@@ -5,7 +5,8 @@
     "esModuleInterop": true,
     "plugins": [
       { "transform": "ts-transformer-keys/transformer" }
-    ]
+    ],
+    "baseUrl": "./src"
   },
   "exclude": [
     "node_modules"
